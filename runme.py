@@ -185,9 +185,7 @@ if __name__ == '__main__':
         if len(items_to_display) == 0:
             items_to_display = data_fountain.items.copy()
             random.shuffle(items_to_display)
-        
-        print(items_to_display)
-        
+                        
         image = load_image_from_url(items_to_display.pop())
         image_to_display = prepare_image(image, monitor_width, monitor_height)
    
