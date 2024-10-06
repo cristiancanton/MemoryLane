@@ -97,10 +97,16 @@ if __name__ == '__main__':
     
     logging.basicConfig(level=logging.DEBUG, filename="/tmp/MemoryLane.log",filemode="w")
     logging.info(f"Starting!")
-    monitor = (next((m for m in screeninfo.get_monitors() if m.is_primary), None))
+
+    _monitors = screeninfo.get_monitors()
+    if _monitors is None:
+        logging.critical(f"No monitors found. Terminating program")
+        sys.exit(EXIT_ERROR)
+
+    monitor = (next((m for m in _monitors if m.is_primary), None))
 
     if monitor is None:
-        logging.critical(f"No monitors found. Terminating program")
+        logging.critical(f"No *primary* monitors found. Terminating program")
         sys.exit(EXIT_ERROR)
             
     logging.info(f"Found active monitor.")
