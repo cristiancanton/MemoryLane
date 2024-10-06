@@ -96,6 +96,7 @@ def display_image(image, monitor_width, monitor_height):
 if __name__ == '__main__':
     
     logging.basicConfig(level=logging.DEBUG, filename="/tmp/MemoryLane.log",filemode="w")
+    logging.info(f"Starting!")
     monitor = (next((m for m in screeninfo.get_monitors() if m.is_primary), None))
 
     if monitor is None:
@@ -106,7 +107,7 @@ if __name__ == '__main__':
     
     width, height = monitor.width, monitor.height
 
-    image_path = 'stamp.jpg'
+    image_path = '/home/memorylane/MemoryLane/stamp.jpg'
     
     image = load_image(image_path)
     # image = load_image_from_url('http://memorylane.canton.cat/sammamish2300/IMG_2567.JPG')
