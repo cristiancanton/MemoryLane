@@ -102,8 +102,12 @@ if __name__ == '__main__':
     if _monitors is None:
         logging.critical(f"No monitors found. Terminating program")
         sys.exit(EXIT_ERROR)
-
-    monitor = (next((m for m in _monitors if m.is_primary), None))
+    
+    monitor = None
+    if len(_monitors) == 1:
+        monitor = _monitors[0]
+    else:
+        monitor = (next((m for m in _monitors if m.is_primary), None))
 
     if monitor is None:
         logging.critical(f"No *primary* monitors found. Terminating program")
