@@ -92,35 +92,42 @@ def display_image(image, monitor_width, monitor_height):
     # Close all OpenCV windows
     cv2.destroyAllWindows()
 
+class Monitor:
+    def __init__(self):
+        self.device = None
+
+    def initialize(self):
+        _monitors = screeninfo.get_monitors()
+        if _monitors is None:
+            logging.critical(f"No monitors found. Terminating program")
+            sys.exit(EXIT_ERROR)
+                
+        if len(_monitors) == 1:
+            self.device = _monitors[0]
+        else:
+            self.device = (next((m for m in _monitors if m.is_primary), None))
+
+        if self.device is None:
+            logging.critical(f"No *primary* monitors found. Terminating program")
+            sys.exit(EXIT_ERROR)
+                
+        logging.info(f"Found active monitor.")
+
                 
 if __name__ == '__main__':
     
     logging.basicConfig(level=logging.DEBUG, filename="/tmp/MemoryLane.log",filemode="w")
     logging.info(f"Starting!")
 
-    _monitors = screeninfo.get_monitors()
-    if _monitors is None:
-        logging.critical(f"No monitors found. Terminating program")
-        sys.exit(EXIT_ERROR)
+    monitor = Monitor()
+    monitor.initialize()
     
-    monitor = None
-    if len(_monitors) == 1:
-        monitor = _monitors[0]
-    else:
-        monitor = (next((m for m in _monitors if m.is_primary), None))
-
-    if monitor is None:
-        logging.critical(f"No *primary* monitors found. Terminating program")
-        sys.exit(EXIT_ERROR)
-            
-    logging.info(f"Found active monitor.")
-    
-    width, height = monitor.width, monitor.height
+    width, height = monitor.device.width, monitor.device.height
 
     image_path = '/home/memorylane/MemoryLane/stamp.jpg'
     
-    image = load_image(image_path)
-    # image = load_image_from_url('http://memorylane.canton.cat/sammamish2300/IMG_2567.JPG')
+    #image = load_image(image_path)
+    image = load_image_from_url('http://memorylane.canton.cat/sammamish2300/IMG_2567.JPG')
     display_image(image, width, height)
 
     # image = np.ones((height, width, 3), dtype=np.float32)
