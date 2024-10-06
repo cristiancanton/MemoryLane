@@ -6,17 +6,49 @@ import logging
 import sys
 import requests
 from io import BytesIO
+import json
+import random
+import time
+
+import requests
+from bs4 import BeautifulSoup
+import re
 
 EXIT_WARNING = 2
 EXIT_ERROR = 1
 
-# class DataFountain:
-#     def __init__(self):
-#         self.type = 'Undefined'
+class DataFountain:
+    def __init__(self):
+        self.type = 'Undefined'
 
-#     def connect(self):
-#         self.connector = None
-        
+class URLFountain(DataFountain):
+    def	__init__(self, url):
+        DataFountain.__init__(self)
+        self.type = 'URL' 
+        self.url = url
+        self.items = self.get_files()
+
+    def get_files(self):
+        try:
+            response = requests.get(self.url)
+            soup = BeautifulSoup(response.text, 'html.parser')
+            file_urls = []
+            for a in soup.find_all('a', href=True):
+                link = a['href']
+                # Very basic check for file extensions, adjust as needed
+                if re.search(r'\.(jpg|JPG|png|PNG)$', link):
+                    # Ensure full URL (in case of relative paths)
+                    if not link.startswith('http'):
+                        if link.startswith('/'):
+                            link = self.url + link
+                        else:
+                            link = self.url + '/' + link
+                    file_urls.append(link)
+            return file_urls
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
+    
         
 # class DropboxFountain(DataFountain):
 #     def	__init__(self):
@@ -26,14 +58,22 @@ EXIT_ERROR = 1
 #     def load_access_data(self, init_file):
 
 
-# class LocalMediaRepository:
+class LocalMediaRepository:
 
-#     def __init__(self):
-#         self.local_ledger = 'image_repository.json'
+    def __init__(self):
+        self.local_ledger_filename = 'image_repository.json'
+        self.local_ledger = None
         
-        
-#     def load_local_ledger(self):
-#         if is.path.isfile(self.local_ledger):
+    def load_local_ledger(self):
+        if os.path.isfile(self.local_ledger_filename):
+            with open(self.local_ledger_filename, 'r') as f:
+                self.local_ledger = json.load(f)
+                logging.info(f"Read {self.local_ledger_filename}")
+        else:
+            self.local_ledger = []
+            logging.info(f"Ledger file {self.local_ledger_filename} not present. Initialized to empty.")
+    
+
 
 def load_image_from_url(image_url):
     response = requests.get(image_url)
@@ -48,10 +88,10 @@ def load_image(image_path):
         logging.info(f"{image_path} loaded successfully.")
     
     return img
-        
 
-def display_image(image, monitor_width, monitor_height):
-    # Get image dimensions
+
+def prepare_image(image, monitor_width, monitor_height):
+     # Get image dimensions
     image_height, image_width, _ = image.shape
 
     # Calculate aspect ratio
@@ -73,18 +113,24 @@ def display_image(image, monitor_width, monitor_height):
     pad_x = (monitor_width - new_width) // 2
     pad_y = (monitor_height - new_height) // 2
 
-    # Create a full-screen window
-    cv2.namedWindow('Image', cv2.WND_PROP_FULLSCREEN)
-    cv2.setWindowProperty('Image', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-
-    # Create a black background to fill the entire screen
+     # Create a black background to fill the entire screen
     background = np.zeros((monitor_height, monitor_width, 3), dtype=np.uint8)
 
     # Place the resized image in the center of the background
     background[pad_y:pad_y+new_height, pad_x:pad_x+new_width] = resized_image
 
+    return background
+
+def display_image(image, monitor_width, monitor_height):
+
+    image_to_display = prepare_image(image, monitor_width, monitor_height)
+   
+    # Create a full-screen window
+    cv2.namedWindow('Image', cv2.WND_PROP_FULLSCREEN)
+    cv2.setWindowProperty('Image', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
     # Display the image
-    cv2.imshow('Image', background)
+    cv2.imshow('Image', image_to_display)
 
     # Wait for a key press
     cv2.waitKey(0)
@@ -122,27 +168,36 @@ if __name__ == '__main__':
     monitor = Monitor()
     monitor.initialize()
     
-    width, height = monitor.device.width, monitor.device.height
+    monitor_width, monitor_height = monitor.device.width, monitor.device.height
 
     image_path = '/home/memorylane/MemoryLane/stamp.jpg'
-    
-    #image = load_image(image_path)
-    image = load_image_from_url('http://memorylane.canton.cat/sammamish2300/IMG_2567.JPG')
-    display_image(image, width, height)
+    data_fountain = URLFountain('http://memorylane.canton.cat/sammamish2300')
 
-    # image = np.ones((height, width, 3), dtype=np.float32)
-    # image[:10, :10] = 0  # black at top-left corner
-    # image[height - 10:, :10] = [1, 0, 0]  # blue at bottom-left
-    # image[:10, width - 10:] = [0, 1, 0]  # green at top-right
-    # image[height - 10:, width - 10:] = [0, 0, 1]  # red at bottom-right
-    
-    # window_name = 'projector'
-    # cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-    # cv2.moveWindow(window_name, monitor.x - 1, monitor.y - 1)
-    # cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN,
-    #                       cv2.WINDOW_FULLSCREEN)
-    # cv2.imshow(window_name, image)
-    # cv2.waitKey()
-    # cv2.destroyAllWindows()
+    # #image = load_image(image_path)
+   
+    # Create a full-screen window
+    cv2.namedWindow('Image', cv2.WND_PROP_FULLSCREEN)
+    cv2.setWindowProperty('Image', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
+    items_to_display = []
+
+    while(True):
+        if len(items_to_display) == 0:
+            items_to_display = data_fountain.items.copy()
+            random.shuffle(items_to_display)
+        
+        print(items_to_display)
+        
+        image = load_image_from_url(items_to_display.pop())
+        image_to_display = prepare_image(image, monitor_width, monitor_height)
+   
+        # Display the image
+        cv2.imshow('Image', image_to_display)
+        
+        start_time = time.time()
+        while time.time() - start_time < 30:
+            cv2.waitKey(1)
+
+    # Close all OpenCV windows
+    cv2.destroyAllWindows()
 
