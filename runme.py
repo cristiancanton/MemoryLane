@@ -36,6 +36,9 @@ class ImageFetcher(threading.Thread):
 
     def run(self):
         while True:
+            
+            random.shuffle(self.urls)
+
             for url in self.urls:
                 try:
                     image = load_image_from_url(url)
@@ -74,7 +77,7 @@ class URLFountain(DataFountain):
                     file_urls.append(link)
             return file_urls
         except Exception as e:
-            print(f"An error occurred: {e}")
+            logging.critical(f"An error occurred: {e}")
             return []
     
         
@@ -212,18 +215,21 @@ if __name__ == '__main__':
     cv2.setWindowProperty('Image', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
     items_to_display = []
-
-    while(True):
-        image = image_queue.get()
-        image_to_display = prepare_image(image, monitor_width, monitor_height)
-    
-        # Display the image
-        cv2.imshow('Image', image_to_display)
+    try:
+        while(True):
+            image = image_queue.get()
+            image_to_display = prepare_image(image, monitor_width, monitor_height)
         
-        start_time = time.time()
-        while time.time() - start_time < 30:
-            cv2.waitKey(1)
+            # Display the image
+            cv2.imshow('Image', image_to_display)
+            
+            start_time = time.time()
+            while time.time() - start_time < 30:
+                cv2.waitKey(1)
 
-    # Close all OpenCV windows
-    cv2.destroyAllWindows()
+        # Close all OpenCV windows
+        cv2.destroyAllWindows()
+    except Exception as e:
+        logging.critical(f"An error occurred: {e}")
+    
 
