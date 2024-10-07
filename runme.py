@@ -14,8 +14,36 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
+import threading
+import queue
+
 EXIT_WARNING = 2
 EXIT_ERROR = 1
+
+FETCH_INTERVAL = 1
+QUEUE_SIZE = 10
+
+def load_image_from_url(image_url):
+    response = requests.get(image_url)
+    image_array = np.asarray(bytearray(response.content), dtype=np.uint8)
+    return cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+
+class ImageFetcher(threading.Thread):
+    def __init__(self, queue, urls):
+        threading.Thread.__init__(self)
+        self.queue = queue
+        self.urls = urls
+
+    def run(self):
+        while True:
+            for url in self.urls:
+                try:
+                    image = load_image_from_url(url)
+                    self.queue.put(image)
+                    logging.info(f"Fetched image from {url}")
+                except Exception as e:
+                    logging.info(f"Error fetching image from {url}: {e}")
+                time.sleep(FETCH_INTERVAL)
 
 class DataFountain:
     def __init__(self):
@@ -75,10 +103,7 @@ class LocalMediaRepository:
     
 
 
-def load_image_from_url(image_url):
-    response = requests.get(image_url)
-    image_array = np.asarray(bytearray(response.content), dtype=np.uint8)
-    return cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+
 
 def load_image(image_path):
     img = cv2.imread(image_path)
@@ -173,6 +198,13 @@ if __name__ == '__main__':
     image_path = '/home/memorylane/MemoryLane/stamp.jpg'
     data_fountain = URLFountain('http://memorylane.canton.cat/sammamish2300')
 
+    image_queue = queue.Queue(maxsize=QUEUE_SIZE)
+
+    # Create image fetcher thread
+    fetcher = ImageFetcher(image_queue, data_fountain.items)
+    fetcher.daemon = True
+    fetcher.start()
+
     # #image = load_image(image_path)
    
     # Create a full-screen window
@@ -182,13 +214,9 @@ if __name__ == '__main__':
     items_to_display = []
 
     while(True):
-        if len(items_to_display) == 0:
-            items_to_display = data_fountain.items.copy()
-            random.shuffle(items_to_display)
-                        
-        image = load_image_from_url(items_to_display.pop())
+        image = image_queue.get()
         image_to_display = prepare_image(image, monitor_width, monitor_height)
-   
+    
         # Display the image
         cv2.imshow('Image', image_to_display)
         
