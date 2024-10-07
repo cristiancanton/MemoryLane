@@ -20,7 +20,7 @@ import queue
 EXIT_WARNING = 2
 EXIT_ERROR = 1
 
-FETCH_INTERVAL = 2
+FETCH_INTERVAL = 3
 QUEUE_SIZE = 3
 
 def load_image_from_url(image_url):
