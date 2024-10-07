@@ -20,8 +20,8 @@ import queue
 EXIT_WARNING = 2
 EXIT_ERROR = 1
 
-FETCH_INTERVAL = 1
-QUEUE_SIZE = 10
+FETCH_INTERVAL = 2
+QUEUE_SIZE = 3
 
 def load_image_from_url(image_url):
     response = requests.get(image_url)
@@ -48,13 +48,9 @@ class ImageFetcher(threading.Thread):
                     logging.info(f"Error fetching image from {url}: {e}")
                 time.sleep(FETCH_INTERVAL)
 
-class DataFountain:
-    def __init__(self):
-        self.type = 'Undefined'
 
-class URLFountain(DataFountain):
+class URLFountain:
     def	__init__(self, url):
-        DataFountain.__init__(self)
         self.type = 'URL' 
         self.url = url
         self.items = self.get_files()
@@ -80,15 +76,6 @@ class URLFountain(DataFountain):
             logging.critical(f"An error occurred: {e}")
             return []
     
-        
-# class DropboxFountain(DataFountain):
-#     def	__init__(self):
-#         Parent.__init__(self)
-#         self.type = 'Dropbox'
-        
-#     def load_access_data(self, init_file):
-
-
 class LocalMediaRepository:
 
     def __init__(self):
@@ -103,6 +90,8 @@ class LocalMediaRepository:
         else:
             self.local_ledger = []
             logging.info(f"Ledger file {self.local_ledger_filename} not present. Initialized to empty.")
+
+    def update(self, )
     
 
 
