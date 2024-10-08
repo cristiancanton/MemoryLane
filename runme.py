@@ -10,6 +10,7 @@ import json
 import random
 import time
 import hashlib
+import exifread
 
 import requests
 from bs4 import BeautifulSoup
@@ -27,9 +28,19 @@ QUEUE_SIZE = 3
 def load_image_from_url(image_url):
     try:
         response = requests.get(image_url)
-        image_array = np.asarray(bytearray(response.content), dtype=np.uint8)
+        raw_data = BytesIO(response.content)
+
+        image_array = np.asarray(bytearray(raw_data.read()), dtype=np.uint8)
         img = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
         logging.info(f"Loaded image {image_url}")
+
+        # tags = exifread.process_file(raw_data)
+        
+        # for tag in tags.keys():
+        #     if tag not in ["JPEGThumbnail", "TIFFThumbnail", "Filename", "EXIF MakerNote"]:
+        #         logging.info(f"{tag}: {tags[tag]}")
+
+
     except Exception as e:
         logging.critical(f"An error occurred loading image {image_url}: {e}")
 
@@ -55,7 +66,7 @@ class ImageFetcher(threading.Thread):
         while True:
             
             try:
-                image = self.media_repo.next_item()
+                image = self.media_repo.next_random_sequential_item()
                 self.queue.put(image)
             except Exception as e:
                 logging.info(f"Error fetching image: {e}")
@@ -95,12 +106,17 @@ class URLFountain:
             logging.critical(f"An error occurred: {e}")
             return []
     
+
+
 class MediaRepository:
 
     def __init__(self, monitor_width, monitor_height):
         self.local_ledger_filename = 'image_repository.json'
         self.local_ledger = {}
         self.monitor_width, self.monitor_height = monitor_width, monitor_height
+
+        #Sequential display of images
+        self.images_to_display = []
 
     def internal_hash(self, input_string):
         return hashlib.md5(input_string.encode()).hexdigest()
@@ -199,8 +215,17 @@ class MediaRepository:
         cv2.imwrite(item_to_load['local_path'], img) # cache it for the future
         return img
 
-    def next_item(self):
+    def next_random_item(self):
         key_to_item = random.choice(list(self.local_ledger.keys()))
+        logging.info(f"Loading {key_to_item}")
+        return self.load_item(key_to_item)
+    
+    def next_random_sequential_item(self):
+        if len(self.images_to_display) == 0:
+            self.images_to_display = list(self.local_ledger.keys())
+            random.shuffle(self.images_to_display)
+
+        key_to_item = self.images_to_display.pop()
         logging.info(f"Loading {key_to_item}")
         return self.load_item(key_to_item)
 
