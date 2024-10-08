@@ -110,10 +110,11 @@ class URLFountain:
 
 class MediaRepository:
 
-    def __init__(self, monitor_width, monitor_height):
+    def __init__(self, monitor_width, monitor_height, url_fountain):
         self.local_ledger_filename = 'image_repository.json'
         self.local_ledger = {}
         self.monitor_width, self.monitor_height = monitor_width, monitor_height
+        self.url_fountain = url_fountain
 
         #Sequential display of images
         self.images_to_display = []
@@ -134,9 +135,9 @@ class MediaRepository:
             self.local_ledger = {}
             logging.info(f"Ledger file {self.local_ledger_filename} not present. Initialized to empty.")
 
-    def update(self, url_fountain):
-        url_fountain.update_files()
-        new_files = url_fountain.items
+    def update(self):
+        self.url_fountain.update_files()
+        new_files = self.url_fountain.items
 
         set_filenames_hashed = []
 
@@ -222,8 +223,12 @@ class MediaRepository:
     
     def next_random_sequential_item(self):
         if len(self.images_to_display) == 0:
+
+            self.update()
+
             self.images_to_display = list(self.local_ledger.keys())
             random.shuffle(self.images_to_display)
+            logging.info(f"Reshuffled images to display (total = {len(self.images_to_display)})")
 
         key_to_item = self.images_to_display.pop()
         logging.info(f"Loading {key_to_item}")
@@ -281,9 +286,9 @@ if __name__ == '__main__':
 
     data_fountain = URLFountain('http://memorylane.canton.cat/sammamish2300')
 
-    media_repository = MediaRepository(monitor_width, monitor_height)
+    media_repository = MediaRepository(monitor_width, monitor_height, data_fountain)
     media_repository.load_local_ledger()
-    media_repository.update(data_fountain)
+    media_repository.update()
     media_repository.save_local_ledger()
 
     image_queue = queue.Queue(maxsize=QUEUE_SIZE)
