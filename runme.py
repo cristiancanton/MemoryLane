@@ -56,6 +56,27 @@ def load_image(image_path):
     
     return img
 
+def draw_horizontal_line(image, alpha):
+    """
+    Draws a horizontal line at the bottom of the image.
+
+    Args:
+    image (numpy array): The input image.
+    alpha (float): A value between 0 and 1 that controls the length of the line.
+
+    Returns:
+    image (numpy array): The image with the horizontal line drawn.
+    """
+    height, width, _ = image.shape
+
+    # Calculate the end point of the line based on alpha
+    end_x = int(width * alpha)
+
+    # Draw the line
+    cv2.line(image, (0, height-2), (end_x, height-2), (255, 255, 255), 4)
+
+    return image
+
 class ImageFetcher(threading.Thread):
     def __init__(self, queue, media_repo):
         threading.Thread.__init__(self)
@@ -301,17 +322,38 @@ if __name__ == '__main__':
     # Create a full-screen window
     cv2.namedWindow('Image', cv2.WND_PROP_FULLSCREEN)
     cv2.setWindowProperty('Image', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
+    time_show = 30
  
     try:
         while(True):
             image = image_queue.get()
+
+            image_to_display = draw_horizontal_line(image.copy(), 1)
         
             # Display the image
-            cv2.imshow('Image', image)
+            cv2.imshow('Image', image_to_display)
             
             start_time = time.time()
-            while time.time() - start_time < 30:
+
+            previous_second = time_show
+
+            while True:
+                t_passed = time.time() - start_time
+
+                second = time_show - int(t_passed)
+                if second != previous_second:
+                    alpha = second / time_show
+                    
+                    image_to_display = draw_horizontal_line(image.copy(), alpha)
+                    cv2.imshow('Image', image_to_display)
+                    previous_second = second
+
+                if second <= 0:
+                    break
+
                 cv2.waitKey(1)
+                # time.sleep(0.5)
 
         # Close all OpenCV windows
         cv2.destroyAllWindows()
