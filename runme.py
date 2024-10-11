@@ -332,7 +332,8 @@ if __name__ == '__main__':
             image_to_display = draw_horizontal_line(image.copy(), 1)
         
             # Display the image
-            cv2.imshow('Image', image_to_display)
+            # cv2.imshow('Image', image_to_display)
+            cv2.imshow('Image', image)
             
             start_time = time.time()
 
@@ -342,18 +343,17 @@ if __name__ == '__main__':
                 t_passed = time.time() - start_time
 
                 second = time_show - int(t_passed)
-                if second != previous_second:
-                    alpha = second / time_show
+                # if second != previous_second:
+                #     alpha = second / time_show
                     
-                    image_to_display = draw_horizontal_line(image.copy(), alpha)
-                    cv2.imshow('Image', image_to_display)
-                    previous_second = second
+                #     image_to_display = draw_horizontal_line(image.copy(), alpha)
+                #     cv2.imshow('Image', image_to_display)
+                #     previous_second = second
 
                 if second <= 0:
                     break
 
                 cv2.waitKey(1)
-                # time.sleep(0.5)
 
         # Close all OpenCV windows
         cv2.destroyAllWindows()
