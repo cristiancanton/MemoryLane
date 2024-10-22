@@ -19,6 +19,7 @@ import re
 import threading
 import queue
 
+
 EXIT_WARNING = 2
 EXIT_ERROR = 1
 
@@ -124,7 +125,7 @@ class URLFountain:
                     file_urls.append(link)
             return file_urls
         except Exception as e:
-            logging.critical(f"An error occurred: {e}")
+            logging.critical(f"Can't load files from Internet. An error occurred: {e}")
             return []
     
 
@@ -297,8 +298,10 @@ class Monitor:
                 
 if __name__ == '__main__':
     
+    version = '1.0 from 22102024'
+
     logging.basicConfig(level=logging.DEBUG, filename="/tmp/MemoryLane.log",filemode="w")
-    logging.info(f"Starting!")
+    logging.info(f"Starting! Running version {version}")
 
     monitor = Monitor()
     monitor.initialize()
@@ -329,7 +332,7 @@ if __name__ == '__main__':
         while(True):
             image = image_queue.get()
 
-            image_to_display = draw_horizontal_line(image.copy(), 1)
+            # image_to_display = draw_horizontal_line(image.copy(), 1)
         
             # Display the image
             # cv2.imshow('Image', image_to_display)
