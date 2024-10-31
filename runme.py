@@ -308,7 +308,7 @@ if __name__ == '__main__':
     
     monitor_width, monitor_height = monitor.device.width, monitor.device.height
 
-    data_fountain = URLFountain('http://memorylane.canton.cat/sammamish2300')
+    data_fountain = URLFountain('http://yoururl.com')
 
     media_repository = MediaRepository(monitor_width, monitor_height, data_fountain)
     media_repository.load_local_ledger()
