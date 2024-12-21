@@ -87,6 +87,9 @@ if __name__ == '__main__':
                       configData.config['sftp_user'], 
                       configData.config['sftp_password'])
     
+    # Initial initialization
+    update_ledger(sftp, mediaRepsitory, configData)
+    
     # Initialize Pygame
     pygame.init()
 
