@@ -9,6 +9,7 @@ import time
 import pygame
 from PIL import Image
 import tempfile
+from tqdm import tqdm
 
 from config_engine import ConfigRepository, Monitor
 from media_repository import MediaRepository, SFTPClient
@@ -41,22 +42,23 @@ def update_ledger(sftp, mediaRepository, configData):
 
     files_to_test = sftp.list_files(configData.config['sftp_path_ingest_new_items'])
     
-    for curr_file in files_to_test:
-        curr_file_full_path = os.path.join(configData.config['sftp_path_ingest_new_items'], curr_file)
+    if files_to_test:
+        for curr_file in tqdm(files_to_test):
+            curr_file_full_path = os.path.join(configData.config['sftp_path_ingest_new_items'], curr_file)
 
-        file_extension = os.path.splitext(curr_file)[1]
-        sftp.download_file(curr_file_full_path, '/tmp' , 'tmp' + file_extension)
+            file_extension = os.path.splitext(curr_file)[1]
+            sftp.download_file(curr_file_full_path, '/tmp' , 'tmp' + file_extension)
 
-        if mediaRepsitory.add_image('/tmp/tmp' + file_extension) is False:
-            logging.error(f'{curr_file} is a duplicate')
-        else:
-            logging.info(f'{curr_file} inserted to media repository')
-            sftp.delete_file(curr_file_full_path)
+            if mediaRepsitory.add_image('/tmp/tmp' + file_extension) is False:
+                logging.error(f'{curr_file} is a duplicate')
+            else:
+                logging.info(f'{curr_file} inserted to media repository')
+                sftp.delete_file(curr_file_full_path)
 
-        if os.path.exists('/tmp/tmp' + file_extension):
-            os.remove('/tmp/tmp' + file_extension)
+            if os.path.exists('/tmp/tmp' + file_extension):
+                os.remove('/tmp/tmp' + file_extension)
 
-    mediaRepsitory.save_local_ledger()
+        mediaRepsitory.save_local_ledger()
 
     if sftp.is_connected():
         sftp.close()
