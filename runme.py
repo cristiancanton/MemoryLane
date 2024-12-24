@@ -129,6 +129,6 @@ if __name__ == '__main__':
                         print("Key pressed, exiting")
                         exit()
                 # # Update the display to keep the image visible
-                # pygame.display.flip()
+                pygame.display.flip()
                 # Briefly yield control to the Pygame event loop
                 pygame.time.delay(1000)
