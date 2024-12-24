@@ -70,10 +70,10 @@ if __name__ == '__main__':
                         filemode="w")
     logging.info(f"Starting! Running version {VERSION}")
 
-    configData = ConfigRepository('config.json')
-    
     check_execution_paths()
 
+    configData = ConfigRepository('config.json')
+    
     mediaRepsitory = MediaRepository(configData)
     
     monitor = Monitor()
