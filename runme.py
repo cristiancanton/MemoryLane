@@ -61,33 +61,33 @@ def update_ledger(sftp, mediaRepository, configData):
 
             mediaRepsitory.save_local_ledger()
 
-    test_ledger_integrity(mediaRepository, configData)
+    # test_ledger_integrity(mediaRepository, configData)
 
     if sftp.is_connected():
         sftp.close()
 
-def test_ledger_integrity(mediaRepository, configData):
+# def test_ledger_integrity(mediaRepository, configData):
 
-    files_in_cache = os.listdir(configData.get_cache_path())
+#     files_in_cache = os.listdir(configData.get_cache_path())
         
-    num_files_in_cache = len(files_in_cache)
-    num_files_in_ledger = len(mediaRepository.local_ledger)
+#     num_files_in_cache = len(files_in_cache)
+#     num_files_in_ledger = len(mediaRepository.local_ledger)
 
-    if num_files_in_cache != num_files_in_ledger:
-        logging.info(f'Files in cache ({num_files_in_cache}) is different than files in ledger ({num_files_in_ledger})')
+#     if num_files_in_cache != num_files_in_ledger:
+#         logging.info(f'Files in cache ({num_files_in_cache}) is different than files in ledger ({num_files_in_ledger})')
 
-    for curr_file_in_cache in files_in_cache:
-        found = False
-        for curr_file_in_ledger in mediaRepository.local_ledger:
-            if curr_file_in_ledger['filename'] == curr_file_in_cache:
-                found = True
-                break
+#     for curr_file_in_cache in files_in_cache:
+#         found = False
+#         for curr_file_in_ledger in mediaRepository.local_ledger:
+#             if curr_file_in_ledger['filename'] == curr_file_in_cache:
+#                 found = True
+#                 break
 
-        if not found:
-            logging.info(f'Files ({curr_file_in_cache}) not found, adding.')
-            mediaRepository.add_image_in_cache(curr_file_in_cache)
+#         if not found:
+#             logging.info(f'Files ({curr_file_in_cache}) not found, adding.')
+#             mediaRepository.add_image_in_cache(curr_file_in_cache)
 
-        mediaRepsitory.save_local_ledger()
+#         mediaRepsitory.save_local_ledger()
 
     
 
