@@ -69,17 +69,28 @@ def update_ledger(sftp, mediaRepository, configData):
 def test_ledger_integrity(mediaRepository, configData):
 
     files_in_cache = os.listdir(configData.get_cache_path())
-    print(files_in_cache[0])
-    
+        
     num_files_in_cache = len(files_in_cache)
     num_files_in_ledger = len(mediaRepository.local_ledger)
+
     if num_files_in_cache != num_files_in_ledger:
         logging.info(f'Files in cache ({num_files_in_cache}) is different than files in ledger ({num_files_in_ledger})')
+
+    for curr_file_in_cache in files_in_cache:
+        found = False
+        for curr_file_in_ledger in mediaRepository.local_ledger:
+            if curr_file_in_ledger['filename'] == curr_file_in_cache:
+                found = True
+                break
+
+        if not found:
+            print(curr_file_in_cache)
+
     
 
 if __name__ == '__main__':
 
-    logging.basicConfig(level=logging.ERROR, 
+    logging.basicConfig(level=logging.INFO, 
                         filename='/tmp/MemoryLane.log',
                         filemode="w")
     logging.info(f"Starting! Running version {VERSION}")
