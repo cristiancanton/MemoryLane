@@ -53,7 +53,8 @@ def update_ledger(sftp, mediaRepository, configData):
                 logging.error(f'{curr_file} is a duplicate')
             else:
                 logging.info(f'{curr_file} inserted to media repository')
-                sftp.delete_file(curr_file_full_path)
+            
+            sftp.delete_file(curr_file_full_path)
 
             if os.path.exists('/tmp/tmp' + file_extension):
                 os.remove('/tmp/tmp' + file_extension)
