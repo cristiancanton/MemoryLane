@@ -59,7 +59,7 @@ def update_ledger(sftp, mediaRepository, configData):
             if os.path.exists('/tmp/tmp' + file_extension):
                 os.remove('/tmp/tmp' + file_extension)
 
-        mediaRepsitory.save_local_ledger()
+            mediaRepsitory.save_local_ledger()
 
     test_ledger_integrity(mediaRepository, configData)
 
@@ -84,7 +84,9 @@ def test_ledger_integrity(mediaRepository, configData):
                 break
 
         if not found:
-            print(curr_file_in_cache)
+            mediaRepository.add_image_in_cache(curr_file_in_cache)
+
+        mediaRepsitory.save_local_ledger()
 
     
 

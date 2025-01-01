@@ -26,42 +26,55 @@ def load_image_fix_orientation(image_path):
     Returns:
         Image: The image with its orientation fixed.
     """
-    image = Image.open(image_path)
- 
-    # Get the EXIF data from the image
-    exif_data = image._getexif()
- 
-    # If there's no EXIF data, return the original image
-    if exif_data is None:
+
+    try:
+
+        image = Image.open(image_path)
+    
+        # Get the EXIF data from the image
+        exif_data = image._getexif()
+    
+        # If there's no EXIF data, return the original image
+        if exif_data is None:
+            return image
+    
+        # Get the image orientation from the EXIF data
+        orientation = exif_data.get(274, 1)
+    
+        # Rotate the image based on its orientation
+        if orientation == 2:
+            # Horizontal mirror
+            image = image.transpose(Image.FLIP_LEFT_RIGHT)
+        elif orientation == 3:
+            # Rotate 180
+            image = image.transpose(Image.ROTATE_180)
+        elif orientation == 4:
+            # Vertical mirror
+            image = image.transpose(Image.FLIP_TOP_BOTTOM)
+        elif orientation == 5:
+            # Horizontal mirror and rotate 270
+            image = image.transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.ROTATE_270)
+        elif orientation == 6:
+            # Rotate 270
+            image = image.transpose(Image.ROTATE_270)
+        elif orientation == 7:
+            # Horizontal mirror and rotate 90
+            image = image.transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.ROTATE_90)
+        elif orientation == 8:
+            # Rotate 90
+            image = image.transpose(Image.ROTATE_90)
+    
         return image
- 
-    # Get the image orientation from the EXIF data
-    orientation = exif_data.get(274, 1)
- 
-    # Rotate the image based on its orientation
-    if orientation == 2:
-        # Horizontal mirror
-        image = image.transpose(Image.FLIP_LEFT_RIGHT)
-    elif orientation == 3:
-        # Rotate 180
-        image = image.transpose(Image.ROTATE_180)
-    elif orientation == 4:
-        # Vertical mirror
-        image = image.transpose(Image.FLIP_TOP_BOTTOM)
-    elif orientation == 5:
-        # Horizontal mirror and rotate 270
-        image = image.transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.ROTATE_270)
-    elif orientation == 6:
-        # Rotate 270
-        image = image.transpose(Image.ROTATE_270)
-    elif orientation == 7:
-        # Horizontal mirror and rotate 90
-        image = image.transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.ROTATE_90)
-    elif orientation == 8:
-        # Rotate 90
-        image = image.transpose(Image.ROTATE_90)
- 
-    return image
+    
+    except FileNotFoundError:
+        logging.error(f"Image file not found: {image_path}")
+        raise
+    except ValueError as e:
+        logging.error(f"Invalid image file: {image_path} - {e}")
+        raise
+    except Exception as e:
+        logging.error(f"Unexpected error: {image_path} - {e}")
+        raise
 
 class SFTPClient:
     def __init__(self, host, username, password, port=22):
@@ -184,6 +197,28 @@ class MediaRepository:
         self.config_data = config_data
         self.load_local_ledger()
 
+    def add_image_in_cache(self, filename):
+        path_to_img = os.path.join(self.config_data.get_cache_path(), filename)
+        img = load_image_fix_orientation(path_to_img)
+
+        img_data = {}
+
+        # Check if image is already in ---------------
+        hash = self.compute_hash(img)
+                
+        for curr_img_ledger in self.local_ledger:
+            if self.compare_hash(curr_img_ledger['phash'], hash):
+                return False
+
+        img_data['phash'] = hash
+            
+        # Select random name
+        img_data['filename'] = filename
+
+        self.local_ledger.append(img_data)
+
+        return True
+    
     def add_image(self, remote_path):
         
         img = load_image_fix_orientation(remote_path)
