@@ -61,8 +61,20 @@ def update_ledger(sftp, mediaRepository, configData):
 
         mediaRepsitory.save_local_ledger()
 
+    test_ledger_integrity(sftp, mediaRepository, configData)
+
     if sftp.is_connected():
         sftp.close()
+
+def test_ledger_integrity(sftp, mediaRepository, configData):
+
+    files_in_cache = sftp.list_files(configData.get_cache_path())
+    
+    num_files_in_cache = len(files_in_cache)
+    num_files_in_ledger = len(mediaRepository.local_ledger)
+    if num_files_in_cache != num_files_in_ledger:
+        logging.info(f'Files in cache ({num_files_in_cache}) is different than files in ledger ({num_files_in_ledger})')
+    
 
 if __name__ == '__main__':
 
