@@ -84,6 +84,7 @@ def test_ledger_integrity(mediaRepository, configData):
                 break
 
         if not found:
+            logging.info(f'Files ({curr_file_in_cache}) not found, adding.')
             mediaRepository.add_image_in_cache(curr_file_in_cache)
 
         mediaRepsitory.save_local_ledger()
