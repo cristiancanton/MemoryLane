@@ -138,7 +138,8 @@ class SFTPClient:
     def list_files(self, remote_path):
         try:
             files = self.sftp.listdir(remote_path)
-            return files
+            jpg_files = [file for file in files if file.lower().endswith(('.jpg', '.jpeg'))]
+            return jpg_files
         except paramiko.SFTPError as e:
             self.logger.error(f"Error listing files: {e}")
             raise
