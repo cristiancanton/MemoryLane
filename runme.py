@@ -100,15 +100,13 @@ if __name__ == '__main__':
 
     check_execution_paths()
 
-    configData = ConfigRepository('config.json')
-    
-    mediaRepsitory = MediaRepository(configData)
-    
     monitor = Monitor()
     monitor.initialize()
 
-    configData.config['monitor_width'], configData.config['monitor_height'] = monitor.device.width, monitor.device.height
-
+    configData = ConfigRepository('config.json', monitor)
+    
+    mediaRepsitory = MediaRepository(configData)
+ 
     startup_checks(configData)
 
     sftp = SFTPClient(configData.config['sftp_address'], 

@@ -34,7 +34,7 @@ class Monitor:
         return self.device.width, self.device.height
 
 class ConfigRepository:
-    def __init__(self, config_file_path):
+    def __init__(self, config_file_path, monitor=None):
         """
         Initialize the ConfigRepository instance.
  
@@ -44,7 +44,23 @@ class ConfigRepository:
         self.config = {}
         self.logger = logging.getLogger(__name__)
 
-        self.load_config()
+        self.set_defaults()
+
+        loaded = self.load_config()
+
+        if monitor is not None:
+            width, height = monitor.get_size()
+            print(width, height)
+            if self.config['monitor_width'] == 0 and self.config['monitor_height'] == 0:
+                self.set_monitor(width, height) 
+            elif self.config['monitor_width'] != width or self.config['monitor_height'] != height:
+                self.logger.warning(f"Monitor size mismatch. Expected {self.config['monitor_width']}x{self.config['monitor_height']}, but got {width}x{height}.")
+                self.logger.warning(f"Setting monitor size to {width}x{height}")
+                self.set_monitor(width, height) 
+
+        if not loaded:
+            self.save_config()
+            
  
     def load_config(self):
         """
@@ -56,10 +72,10 @@ class ConfigRepository:
             self.logger.info(f'Loading config file {self.config_file_path}')
             with open(self.config_file_path, 'r') as config_file:
                 self.config = json.load(config_file)
+            return True
         else:
             self.logger.info(f'Config file {self.config_file_path} does not exists. Setting to defaults')
-            self.set_defaults()
-            self.save_config()
+            return False
  
     def save_config(self):
         """
@@ -87,6 +103,7 @@ class ConfigRepository:
         self.config['sftp_password'] = 'password'
         self.config['sftp_path'] = 'your path'
         self.config['sftp_path_ingest_new_items'] = 'your ingestion path'
+        self.config['delete_after_ingest'] = True
 
         #Display
         self.config['time_show'] = 35
