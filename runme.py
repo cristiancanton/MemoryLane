@@ -10,6 +10,7 @@ import pygame
 from PIL import Image
 import tempfile
 from tqdm import tqdm
+import argparse
 
 from config_engine import ConfigRepository, Monitor
 from media_repository import MediaRepository, SFTPClient
@@ -95,6 +96,10 @@ def update_ledger(sftp, mediaRepository, configData):
 
 if __name__ == '__main__':
 
+    parser = argparse.ArgumentParser(description='Memory Lane')
+    parser.add_argument('--no-update-ledger', action='store_true', help='Do not update ledger from cloud')
+    args = parser.parse_args()
+
     logging.basicConfig(level=logging.INFO, 
                         filename='/tmp/MemoryLane.log',
                         filemode="w")
@@ -116,7 +121,8 @@ if __name__ == '__main__':
                       configData.config['sftp_password'])
     
     # Initial initialization
-    update_ledger(sftp, mediaRepsitory, configData)
+    if not args.no_update_ledger:
+        update_ledger(sftp, mediaRepsitory, configData)
     
     # Initialize Pygame
     pygame.init()
@@ -129,7 +135,8 @@ if __name__ == '__main__':
 
     while True:
         
-        update_ledger(sftp, mediaRepsitory, configData)
+        if not args.no_update_ledger:
+            update_ledger(sftp, mediaRepsitory, configData)
 
         ledger_local = mediaRepsitory.local_ledger.copy()
         random.shuffle(ledger_local)
