@@ -54,7 +54,9 @@ def update_ledger(sftp, mediaRepository, configData):
             else:
                 logging.info(f'{curr_file} inserted to media repository')
             
-            sftp.delete_file(curr_file_full_path)
+            if configData.config['delete_after_ingest']:
+                logging.info(f'Deleting {curr_file_full_path}')
+                sftp.delete_file(curr_file_full_path)
 
             if os.path.exists('/tmp/tmp' + file_extension):
                 os.remove('/tmp/tmp' + file_extension)
