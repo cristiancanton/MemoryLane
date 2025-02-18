@@ -52,11 +52,13 @@ class ConfigRepository:
             width, height = monitor.get_size()
             
             if self.config['monitor_width'] == 0 and self.config['monitor_height'] == 0:
-                self.set_monitor(width, height) 
+                self.set_monitor(width, height)
+                self.save_config()
             elif self.config['monitor_width'] != width or self.config['monitor_height'] != height:
                 self.logger.warning(f"Monitor size mismatch. Expected {self.config['monitor_width']}x{self.config['monitor_height']}, but got {width}x{height}.")
                 self.logger.warning(f"Setting monitor size to {width}x{height}")
                 self.set_monitor(width, height) 
+                self.save_config()
 
         if not loaded:
             self.save_config()
