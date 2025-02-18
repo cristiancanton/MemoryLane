@@ -98,6 +98,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Memory Lane')
     parser.add_argument('--no-update-ledger', action='store_true', help='Do not update ledger from cloud')
+    parser.add_argument('--log-analytics', action='store_true', help='Log analytics data')
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, 
@@ -140,30 +141,71 @@ if __name__ == '__main__':
 
         ledger_local = mediaRepsitory.local_ledger.copy()
         random.shuffle(ledger_local)
+        
+        if args.log_analytics:
+            logging.info(f"[Analytics] Shuffling {len(ledger_local)} items")
+
+        count_items = 0
+        tshow = time.time()
 
         while ledger_local:
             curr_element = ledger_local.pop(0)
+            count_items += 1
 
             curr_filename = os.path.join(configData.get_cache_path(), curr_element['filename'])
-                
-            start_time = time.time()
+            
             # Load the image
+            if args.log_analytics:
+                ts = time.time()
+
             image = pygame.image.load(curr_filename)
 
+            if args.log_analytics:
+                te_load = time.time() - ts
+                
+
             # Draw the image    
+            if args.log_analytics:
+                ts = time.time()
+
             screen.blit(image, (0, 0))
+
+            start_time = time.time()
+
+            if args.log_analytics:
+                te_draw = time.time() - ts
 
             # Update the display
             pygame.display.flip()
 
+            if args.log_analytics:
+                tmp_time = time.time()
+                tshownow = tmp_time - tshow
+                logging.info(f"[Analytics] Showing {curr_element['filename']} | Load time: {te_load:.5f}s | Draw time: {te_draw:.5f}s | Shown for {tshownow:.5f}s")
+                tshow = tmp_time
+            
             end_time = start_time + configData.config['time_show']
-            while time.time() < end_time:
-                for event in pygame.event.get():
-                    if event.type == pygame.KEYDOWN:
-                        # If any key is pressed, exit the loop
-                        print("Key pressed, exiting")
-                        exit()
-                # # Update the display to keep the image visible
-                pygame.display.flip()
-                # Briefly yield control to the Pygame event loop
-                pygame.time.delay(1000)
+
+            time_to_wait = end_time - time.time()
+
+            pygame.time.delay(int(time_to_wait*1000))
+
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    # If any key is pressed, exit the loop
+                    print("Key pressed, exiting")
+                    exit()
+            
+            # while time.time() < end_time:
+            #     for event in pygame.event.get():
+            #         if event.type == pygame.KEYDOWN:
+            #             # If any key is pressed, exit the loop
+            #             print("Key pressed, exiting")
+            #             exit()
+            #     # # Update the display to keep the image visible
+            #     # pygame.display.flip()
+            #     # Briefly yield control to the Pygame event loop
+            #     pygame.time.delay(10)
+        
+        if args.log_analytics:
+            logging.info(f"[Analytics] Showed {count_items} items")
