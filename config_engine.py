@@ -50,7 +50,7 @@ class ConfigRepository:
 
         if monitor is not None:
             width, height = monitor.get_size()
-            print(width, height)
+            
             if self.config['monitor_width'] == 0 and self.config['monitor_height'] == 0:
                 self.set_monitor(width, height) 
             elif self.config['monitor_width'] != width or self.config['monitor_height'] != height:
