@@ -192,7 +192,7 @@ if __name__ == '__main__':
                 te_draw = time.time() - ts_draw
 
             # Update the display
-            pygame.display.flip()
+            pygame.display.update()
 
             ts_show = time.time()
             
