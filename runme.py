@@ -191,7 +191,8 @@ if __name__ == '__main__':
             if args.log_analytics:
                 te_draw = time.time() - ts_draw
 
-            # Update the display
+            # Update the display -- twice otherwise it leaves a trail of the previous image
+            pygame.display.update()
             pygame.display.update()
 
             ts_show = time.time()
