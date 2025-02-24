@@ -154,17 +154,16 @@ if __name__ == '__main__':
     # Set the display dimensions to the screen resolution
     screen = pygame.display.set_mode((infoObject.current_w, infoObject.current_h), pygame.FULLSCREEN)
 
+    if not args.no_update_ledger:
+        update_ledger(sftp, mediaRepsitory, configData)
+
+    ledger_local = mediaRepsitory.local_ledger.copy()
+    random.shuffle(ledger_local)
+    if args.log_analytics:
+        logging.info(f"[Analytics] Shuffling {len(ledger_local)} items")
+
     while True:
         
-        if not args.no_update_ledger:
-            update_ledger(sftp, mediaRepsitory, configData)
-
-        ledger_local = mediaRepsitory.local_ledger.copy()
-        random.shuffle(ledger_local)
-        
-        if args.log_analytics:
-            logging.info(f"[Analytics] Shuffling {len(ledger_local)} items")
-
         count_items = 0
         tshow = time.time()
 
@@ -176,40 +175,36 @@ if __name__ == '__main__':
             
             # Load the image
             if args.log_analytics:
-                ts = time.time()
+                ts_load = time.time()
 
             image = pygame.image.load(curr_filename)
 
             if args.log_analytics:
-                te_load = time.time() - ts
+                te_load = time.time() - ts_load
                 
-
             # Draw the image    
             if args.log_analytics:
-                ts = time.time()
+                ts_draw = time.time()
 
             screen.blit(image, (0, 0))
 
-            start_time = time.time()
-
             if args.log_analytics:
-                te_draw = time.time() - ts
+                te_draw = time.time() - ts_draw
 
             # Update the display
             pygame.display.flip()
 
-            if args.log_analytics:
-                tmp_time = time.time()
-                tshownow = tmp_time - tshow
-                logging.info(f"[Analytics] Showing {curr_element['filename']} | Load time: {te_load:.5f}s | Draw time: {te_draw:.5f}s | Shown for {tshownow:.5f}s")
-                tshow = tmp_time
+            ts_show = time.time()
             
-            end_time = start_time + configData.config['time_show']
-
+            end_time = ts_show + configData.config['time_show']
             time_to_wait = end_time - time.time()
 
             pygame.time.delay(int(time_to_wait*1000))
 
+            if args.log_analytics:
+                te_show = time.time() - ts_show
+                logging.info(f"[Analytics] Showing {curr_element['filename']} | Load time: {te_load:.5f}s | Draw time: {te_draw:.5f}s | Shown for {te_show:.5f}s")
+                
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     # If any key is pressed, exit the loop
@@ -229,3 +224,12 @@ if __name__ == '__main__':
         
         if args.log_analytics:
             logging.info(f"[Analytics] Showed {count_items} items")
+
+        if not args.no_update_ledger:
+            update_ledger(sftp, mediaRepsitory, configData)
+        
+        ledger_local = mediaRepsitory.local_ledger.copy()
+        random.shuffle(ledger_local)
+
+        if args.log_analytics:
+            logging.info(f"[Analytics] Shuffling {len(ledger_local)} items")
