@@ -1,7 +1,10 @@
 import numpy as np
 import os.path
 import screeninfo
+
 import logging
+from logging.handlers import RotatingFileHandler
+
 import sys
 import json
 import random
@@ -92,7 +95,25 @@ def update_ledger(sftp, mediaRepository, configData):
 
 #         mediaRepsitory.save_local_ledger()
 
+
+def get_logger(name, log_filename):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
     
+    # Create a rotating file handler which logs even debug messages
+    # up to 10MB in size, keeping up to 5 backup files
+    fh = RotatingFileHandler(log_filename, mode='a', maxBytes=10*1024*1024, backupCount=5)
+    fh.setLevel(logging.DEBUG)
+    
+    # Create formatter and add it to the handlers
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    
+    # Add the handler to the logger
+    logger.addHandler(fh)
+    
+    return logger
+
 
 if __name__ == '__main__':
 
@@ -101,9 +122,8 @@ if __name__ == '__main__':
     parser.add_argument('--log-analytics', action='store_true', help='Log analytics data')
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO, 
-                        filename='/tmp/MemoryLane.log',
-                        filemode="w")
+    logging = get_logger('MemoryLane', '/tmp/MemoryLane.log')
+
     logging.info(f"Starting! Running version {VERSION}")
 
     check_execution_paths()
