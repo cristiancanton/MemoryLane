@@ -245,7 +245,7 @@ if __name__ == '__main__':
 
             # ------
             # Draw progress bar
-            progress_bar_height = 10
+            progress_bar_height = 5
             progress_bar_color = (255, 255, 255)  # Red
             progress_bar_x = 0
             progress_bar_y = infoObject.current_h - progress_bar_height
@@ -264,7 +264,7 @@ if __name__ == '__main__':
     
                 # Update the display
                 pygame.display.update((0, progress_bar_y, progress_bar_width, progress_bar_height))
-                clock.tick(20)  # Limit updates to 10 times per second
+                clock.tick(1)  # Limit updates to 1 times per second
             # -----
             # pygame.time.delay(int(time_to_wait*1000))
 
