@@ -1,5 +1,5 @@
 import numpy as np
-import os.path
+import os
 import screeninfo
 
 import logging
@@ -14,11 +14,28 @@ from PIL import Image
 import tempfile
 from tqdm import tqdm
 import argparse
+import requests
 
 from config_engine import ConfigRepository, Monitor
 from media_repository import MediaRepository, SFTPClient
 
-VERSION = '1.0/17122024'
+VERSION = '1.0/25022025'
+
+def test_internet(timeout=1):
+    """
+    Tests internet connectivity by attempting to connect to Google.
+ 
+    Args:
+        timeout (int): The timeout in seconds for the connection attempt. Defaults to 1.
+ 
+    Returns:
+        bool: True if internet is available, False otherwise.
+    """
+    try:
+        requests.head('https://www.google.com', timeout=timeout)
+        return True
+    except requests.ConnectionError:
+        return False
 
 def check_execution_paths():
     execution_path =  os.getcwd()
@@ -39,7 +56,11 @@ def startup_checks(config_data):
         logging.debug(f'Cache path not exists. Creating {_cache_path}')
         os.makedirs(_cache_path)
 
-def update_ledger(sftp, mediaRepository, configData):
+def update_ledger(mediaRepository, configData):
+
+    sftp = SFTPClient(configData.config['sftp_address'], 
+                      configData.config['sftp_user'], 
+                      configData.config['sftp_password'])
     
     if not sftp.is_connected():
         sftp.connect()
@@ -136,15 +157,7 @@ if __name__ == '__main__':
     mediaRepsitory = MediaRepository(configData)
  
     startup_checks(configData)
-
-    sftp = SFTPClient(configData.config['sftp_address'], 
-                      configData.config['sftp_user'], 
-                      configData.config['sftp_password'])
-    
-    # Initial initialization
-    if not args.no_update_ledger:
-        update_ledger(sftp, mediaRepsitory, configData)
-    
+   
     # Initialize Pygame
     pygame.init()
 
@@ -154,11 +167,12 @@ if __name__ == '__main__':
     # Set the display dimensions to the screen resolution
     screen = pygame.display.set_mode((infoObject.current_w, infoObject.current_h), pygame.FULLSCREEN)
 
-    if not args.no_update_ledger:
-        update_ledger(sftp, mediaRepsitory, configData)
+    if not args.no_update_ledger and test_internet():
+        update_ledger(mediaRepsitory, configData)
 
     ledger_local = mediaRepsitory.local_ledger.copy()
     random.shuffle(ledger_local)
+
     if args.log_analytics:
         logging.info(f"[Analytics] Shuffling {len(ledger_local)} items")
 
@@ -211,23 +225,12 @@ if __name__ == '__main__':
                     # If any key is pressed, exit the loop
                     print("Key pressed, exiting")
                     exit()
-            
-            # while time.time() < end_time:
-            #     for event in pygame.event.get():
-            #         if event.type == pygame.KEYDOWN:
-            #             # If any key is pressed, exit the loop
-            #             print("Key pressed, exiting")
-            #             exit()
-            #     # # Update the display to keep the image visible
-            #     # pygame.display.flip()
-            #     # Briefly yield control to the Pygame event loop
-            #     pygame.time.delay(10)
-        
+       
         if args.log_analytics:
             logging.info(f"[Analytics] Showed {count_items} items")
 
-        if not args.no_update_ledger:
-            update_ledger(sftp, mediaRepsitory, configData)
+        if not args.no_update_ledger and test_internet():
+            update_ledger( mediaRepsitory, configData)
         
         ledger_local = mediaRepsitory.local_ledger.copy()
         random.shuffle(ledger_local)
