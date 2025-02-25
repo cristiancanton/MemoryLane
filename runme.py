@@ -243,6 +243,7 @@ if __name__ == '__main__':
             end_time = ts_show + configData.config['time_show']
             time_to_wait = end_time - time.time()
 
+
             # ------
             # Draw progress bar
             progress_bar_height = 5
