@@ -6,6 +6,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 import sys
+import platform
 import json
 import random
 import time
@@ -20,6 +21,29 @@ from config_engine import ConfigRepository, Monitor
 from media_repository import MediaRepository, SFTPClient
 
 VERSION = '1.0/25022025'
+
+def get_cpu_temperature():
+    """
+    Returns the current CPU temperature in degrees Celsius.
+    If the machine is not running Linux, returns 0.
+    """
+    # Check if the machine is running Linux
+    if platform.system() != 'Linux':
+        return 0
+ 
+    # Check if the temperature file exists
+    temp_file = '/sys/class/thermal/thermal_zone0/temp'
+    if not os.path.exists(temp_file):
+        return 0
+ 
+    # Read the temperature from the sysfs file
+    with open(temp_file, 'r') as f:
+        temp = f.read().strip()
+    
+    # Convert the temperature from millidegrees Celsius to degrees Celsius
+    temp = int(temp) / 1000
+    
+    return temp
 
 def test_internet(timeout=1):
     """
@@ -157,7 +181,7 @@ if __name__ == '__main__':
     mediaRepsitory = MediaRepository(configData)
  
     startup_checks(configData)
-   
+
     # Initialize Pygame
     pygame.init()
 
@@ -177,11 +201,16 @@ if __name__ == '__main__':
         logging.info(f"[Analytics] Shuffling {len(ledger_local)} items")
 
     while True:
-        
+       
         count_items = 0
         tshow = time.time()
 
         while ledger_local:
+
+            if args.log_analytics:
+                cpu_temp = get_cpu_temperature()
+                logging.info(f"[Analytics] CPU temperature: {cpu_temp:.2f}°C")
+
             curr_element = ledger_local.pop(0)
             count_items += 1
 
