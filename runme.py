@@ -243,7 +243,28 @@ if __name__ == '__main__':
             end_time = ts_show + configData.config['time_show']
             time_to_wait = end_time - time.time()
 
-            pygame.time.delay(int(time_to_wait*1000))
+            # ------
+            # Draw progress bar
+            progress_bar_height = 10
+            progress_bar_color = (255, 255, 255)  # Red
+            progress_bar_x = 0
+            progress_bar_y = infoObject.current_h - progress_bar_height
+            progress_bar_width = infoObject.current_w
+ 
+            start_time = time.time()
+            while time.time() - start_time < configData.config['time_show']:
+                current_time = time.time() - start_time
+                progress = 1 - (current_time / configData.config['time_show'])
+                progress_bar_width = int(infoObject.current_w * progress)
+ 
+                # Draw progress bar
+                screen.blit(image, (0, 0))
+                pygame.draw.rect(screen, progress_bar_color, (progress_bar_x, progress_bar_y, progress_bar_width, progress_bar_height))
+ 
+                # Update the display
+                pygame.display.update()
+            # -----
+            # pygame.time.delay(int(time_to_wait*1000))
 
             if args.log_analytics:
                 te_show = time.time() - ts_show
