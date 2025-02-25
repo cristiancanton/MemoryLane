@@ -251,18 +251,20 @@ if __name__ == '__main__':
             progress_bar_y = infoObject.current_h - progress_bar_height
             progress_bar_width = infoObject.current_w
  
+            clock = pygame.time.Clock()
             start_time = time.time()
             while time.time() - start_time < configData.config['time_show']:
                 current_time = time.time() - start_time
                 progress = 1 - (current_time / configData.config['time_show'])
                 progress_bar_width = int(infoObject.current_w * progress)
  
-                # Draw progress bar
-                screen.blit(image, (0, 0))
+                 # Draw progress bar
+                pygame.draw.rect(screen, (0, 0, 0), (0, progress_bar_y, infoObject.current_w, progress_bar_height))  # Clear progress bar area
                 pygame.draw.rect(screen, progress_bar_color, (progress_bar_x, progress_bar_y, progress_bar_width, progress_bar_height))
- 
+    
                 # Update the display
-                pygame.display.update()
+                pygame.display.update((0, progress_bar_y, progress_bar_width, progress_bar_height))
+                clock.tick(20)  # Limit updates to 10 times per second
             # -----
             # pygame.time.delay(int(time_to_wait*1000))
 
