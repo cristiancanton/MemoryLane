@@ -176,7 +176,7 @@ if __name__ == '__main__':
     monitor = Monitor()
     monitor.initialize()
 
-    configData = ConfigRepository('config.json', monitor)
+    configData = ConfigRepository('config.json', logging, monitor)
     
     mediaRepsitory = MediaRepository(configData)
  
@@ -247,7 +247,7 @@ if __name__ == '__main__':
             # ------
             # Draw progress bar
             progress_bar_height = 5
-            progress_bar_color = (255, 255, 255)  # Red
+            progress_bar_color = (128, 128, 128) 
             progress_bar_x = 0
             progress_bar_y = infoObject.current_h - progress_bar_height
             progress_bar_width = infoObject.current_w
@@ -266,8 +266,6 @@ if __name__ == '__main__':
                 # Update the display
                 pygame.display.update((0, progress_bar_y, progress_bar_width, progress_bar_height))
                 clock.tick(1)  # Limit updates to 1 times per second
-            # -----
-            # pygame.time.delay(int(time_to_wait*1000))
 
             if args.log_analytics:
                 te_show = time.time() - ts_show
@@ -290,3 +288,6 @@ if __name__ == '__main__':
 
         if args.log_analytics:
             logging.info(f"[Analytics] Shuffling {len(ledger_local)} items")
+
+        # Check if there is an update in the config file
+        configData.update_config_if_changed()

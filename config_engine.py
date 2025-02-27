@@ -34,7 +34,7 @@ class Monitor:
         return self.device.width, self.device.height
 
 class ConfigRepository:
-    def __init__(self, config_file_path, monitor=None):
+    def __init__(self, config_file_path, logger, monitor=None):
         """
         Initialize the ConfigRepository instance.
  
@@ -42,7 +42,7 @@ class ConfigRepository:
         """
         self.config_file_path = config_file_path
         self.config = {}
-        self.logger = logging.getLogger(__name__)
+        self.logger = logger
 
         self.set_defaults()
 
@@ -121,5 +121,29 @@ class ConfigRepository:
 
     def get_cache_path(self):
         return self.config['cache_path_prefix'] + '_' + str(self.config['monitor_width']) + 'x' + str(self.config['monitor_height'])
+
+    def update_config_if_changed(self):
+        """
+        Load the JSON config file and update self.config if the data has changed.
+ 
+        :return: True if the config was updated, False otherwise.
+        """
+        try:
+            with open(self.config_file_path, 'r') as config_file:
+                new_config = json.load(config_file)
+        except FileNotFoundError:
+            self.logger.info(f'Config file {self.config_file_path} does not exist.')
+            return False
+        except json.JSONDecodeError as e:
+            self.logger.error(f'Failed to parse JSON config file: {e}')
+            return False
+ 
+        if new_config != self.config:
+            self.config = new_config
+            self.logger.info(f'Updated config file {self.config_file_path}')
+            return True
+        else:
+            self.logger.info(f'Config file {self.config_file_path} has not changed.')
+            return False
     
     
