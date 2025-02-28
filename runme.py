@@ -160,6 +160,35 @@ def get_logger(name, log_filename):
     return logger
 
 
+def blend_images(screen, image1, image2, progress):
+    """
+    Blend two images onto the screen.
+    
+    Args:
+        screen (pygame.Surface): The screen to draw onto.
+        image1 (pygame.Surface): The first image.
+        image2 (pygame.Surface): The second image.
+        progress (float): The blending progress (0.0 to 1.0).
+    """
+    # Create a copy of the screen to avoid modifying the original surface
+    temp_surface = pygame.Surface((screen.get_width(), screen.get_height()))
+    temp_surface.blit(screen, (0, 0))
+ 
+    # Draw the first image with reduced opacity
+    s = pygame.Surface((screen.get_width(), screen.get_height()), pygame.SRCALPHA)
+    s.blit(image1, (0, 0))
+    s.set_alpha(int(255 * (1 - progress)))
+    screen.blit(s, (0, 0))
+ 
+    # Draw the second image with increasing opacity
+    s = pygame.Surface((screen.get_width(), screen.get_height()), pygame.SRCALPHA)
+    s.blit(image2, (0, 0))
+    s.set_alpha(int(255 * progress))
+    screen.blit(s, (0, 0))
+ 
+    pygame.display.update()
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Memory Lane')
@@ -200,6 +229,9 @@ if __name__ == '__main__':
     if args.log_analytics:
         logging.info(f"[Analytics] Shuffling {len(ledger_local)} items")
 
+    image = None
+    previous_image = None
+
     while True:
        
         count_items = 0
@@ -219,11 +251,24 @@ if __name__ == '__main__':
             # Load the image
             if args.log_analytics:
                 ts_load = time.time()
+            
+            if image:
+                previous_image = image
 
             image = pygame.image.load(curr_filename)
 
             if args.log_analytics:
                 te_load = time.time() - ts_load
+
+            # Transition
+            if image and previous_image:
+                start_time = time.time()
+                while time.time() - start_time < 2:  # Blend for 2 seconds
+                    current_time = time.time() - start_time
+                    progress = current_time / 2
+        
+                    blend_images(screen, previous_image, image, progress)
+                    clock.tick(60)  # Limit updates to 60 times per second
                 
             # Draw the image    
             if args.log_analytics:
