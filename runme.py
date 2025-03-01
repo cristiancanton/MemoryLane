@@ -268,7 +268,7 @@ if __name__ == '__main__':
                     progress = current_time / 2
         
                     blend_images(screen, previous_image, image, progress)
-                    clock.tick(60)  # Limit updates to 60 times per second
+                    clock.tick(20)  # Limit updates to 20 times per second
                 
             # Draw the image    
             if args.log_analytics:
