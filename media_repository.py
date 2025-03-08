@@ -193,9 +193,20 @@ class SFTPClient:
 class MediaRepository:
 
     def __init__(self, config_data):
-        self.local_ledger = []
+        
+        self.create_ledger()
         self.config_data = config_data
         self.load_local_ledger()
+
+
+    def create_ledger(self):
+        self.local_ledger = {}
+        self.local_ledger['data'] = []
+        self.local_ledger['info'] = {}
+        self.local_ledger['info']['version'] = 1
+        
+
+    
 
     def add_image_in_cache(self, filename):
         path_to_img = os.path.join(self.config_data.get_cache_path(), filename)
@@ -206,7 +217,7 @@ class MediaRepository:
         # Check if image is already in ---------------
         hash = self.compute_hash(img)
                 
-        for curr_img_ledger in self.local_ledger:
+        for curr_img_ledger in self.local_ledger['data']:
             if self.compare_hash(curr_img_ledger['phash'], hash):
                 return False
 
@@ -215,7 +226,7 @@ class MediaRepository:
         # Select random name
         img_data['filename'] = filename
 
-        self.local_ledger.append(img_data)
+        self.local_ledger['data'].append(img_data)
 
         return True
     
@@ -228,7 +239,7 @@ class MediaRepository:
         # Check if image is already in ---------------
         hash = self.compute_hash(img)
                 
-        for curr_img_ledger in self.local_ledger:
+        for curr_img_ledger in self.local_ledger['data']:
             if self.compare_hash(curr_img_ledger['phash'], hash):
                 return False
 
@@ -243,7 +254,7 @@ class MediaRepository:
         path_to_save = os.path.join(self.config_data.get_cache_path(), img_data['filename'])
         img_resized.save(path_to_save, 'JPEG', quality=95)
 
-        self.local_ledger.append(img_data)
+        self.local_ledger['data'].append(img_data)
 
         return True
                 
@@ -271,6 +282,46 @@ class MediaRepository:
         else:
             logging.info(f"Ledger file {self.config_data.config['media_repository_path']} not present. Initialized to empty.")
 
+        self.check_and_upgrade_ledger()
+
+    ## Update ledger versions
+    def update_to_v1(self):
+        # Update logic for version 1
+        new_data = {}
+        new_data['data'] = self.local_ledger
+        new_data['info'] = {}
+        new_data['info']['version'] = 1
+        return new_data
+
+
+    def check_and_upgrade_ledger(self):
+
+        has_been_updated = False
+        last_version = 1
+        current_version = None
+        if isinstance(self.local_ledger, list):
+            #This is version 0
+            current_version = 0
+        else:
+            current_version = self.local_ledger['info']['version']
+
+        update_functions = {
+            1: self.update_to_v1            
+        }
+
+        for version in range(current_version + 1, last_version + 1):
+            update_function = update_functions.get(version)
+            if update_function:
+                self.local_ledger = update_function()
+                has_been_updated = True
+                
+        if has_been_updated:
+            self.save_local_ledger()
+            logging.info(f"Ledger updated to version {last_version}")
+                
+        return
+
+        
     def prepare_image(self, img):
         # Get the size of the monitor (width, height)
         monitor_width, monitor_height = self.config_data.get_monitor_size()

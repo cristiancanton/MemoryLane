@@ -144,6 +144,7 @@ def update_ledger(mediaRepository, configData):
 def get_logger(name, log_filename):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
+    logger.propagate = False
     
     # Create a rotating file handler which logs even debug messages
     # up to 10MB in size, keeping up to 5 backup files
@@ -223,7 +224,7 @@ if __name__ == '__main__':
     if not args.no_update_ledger and test_internet():
         update_ledger(mediaRepsitory, configData)
 
-    ledger_local = mediaRepsitory.local_ledger.copy()
+    ledger_local = mediaRepsitory.local_ledger['data'].copy()
     random.shuffle(ledger_local)
 
     if args.log_analytics:
@@ -328,7 +329,7 @@ if __name__ == '__main__':
         if not args.no_update_ledger and test_internet():
             update_ledger( mediaRepsitory, configData)
         
-        ledger_local = mediaRepsitory.local_ledger.copy()
+        ledger_local = mediaRepsitory.local_ledger['data'].copy()
         random.shuffle(ledger_local)
 
         if args.log_analytics:
